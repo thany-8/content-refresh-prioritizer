@@ -49,8 +49,10 @@ Dates: 2025-01-27 → 2026-06-30 (~17 months). Position column is `gsc_avg_posit
   `SUM()`. Its 90-day window overlaps the snapshot's final months — if your label lives in the
   last 30 days, only `*_prev30`-style columns are safe features (window alignment first!).
 
-**Access + iteration rules:** request gate access once (instant), READ token via getpass or
-Colab Secrets — never pasted in a cell (public repo!). Iterate on the `_sample` table or one
+**Access + iteration rules:** request gate access once (instant), then a **plain Read** token
+(not fine-grained — a fine-grained token can pass `whoami` yet still `403` on the gated files
+unless its gated-repos read permission is ticked) via getpass or Colab Secrets — never pasted
+in a cell (public repo!). Iterate on the `_sample` table or one
 month partition; run the full 79M scan ONCE when the query is final and cache the result to
 `work/outputs/`. Repeated full scans hit HTTP 429 rate limits.
 

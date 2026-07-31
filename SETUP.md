@@ -56,6 +56,10 @@ The full warehouse (~79M rows) is hosted on Hugging Face behind a click-through 
    type **Read** → name it (e.g. `internship`) → copy it somewhere safe.
    ⚠️ Read, not Write — the track never needs more, and a leaked read token is harmless
    to you.
+   ⚠️ Pick the **plain Read** type, not **Fine-grained**. A fine-grained token can pass
+   `whoami` and still `403` on the gated files unless its *"Read access to the contents of
+   all gated repos you can access"* permission is ticked — a silent failure that looks
+   exactly like the gate never opened.
 4. **Use it in notebooks**: paste it at the `getpass` prompt when a notebook asks, or store it
    in Colab's **Secrets** panel (🔑 icon, name it `HF_TOKEN`).
    ⚠️ **Never type the token into a code cell.** Your repo is public — a hardcoded token
