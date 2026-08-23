@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="A client-grouped machine learning study that ranks 30,000 anonymized FlyRank content items for human refresh review.">
+  <title>Which Content Should Editors Refresh First?</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700&family=Newsreader:opsz,wght@6..72,500;6..72,650&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <a class="skip-link" href="#paper">Skip to paper</a>
+  <header class="site-header">
+    <a class="wordmark" href="#top" aria-label="Content Refresh Prioritizer home">
+      <span aria-hidden="true">CRP</span>
+      <strong>Research note 01</strong>
+    </a>
+    <nav aria-label="Paper sections">
+      <a href="#method">Method</a>
+      <a href="#results">Results</a>
+      <a href="#recommendations">Actions</a>
+      <a href="#reproducibility">Reproduce</a>
+    </nav>
+    <a class="repo-link" href="https://github.com/thany-8/content-refresh-prioritizer">View repository</a>
+  </header>
+
+  <main id="paper">
+    <article>
+      <header class="paper-hero" id="top">
+        <p class="eyebrow">Applied search intelligence · 22 August 2026</p>
+        <h1>Which content should editors refresh first?</h1>
+        <p class="dek">A client-grouped comparison of readable rules and learned rankings across 30,000 anonymized FlyRank content items.</p>
+        <div class="byline">
+          <span>thany-8</span>
+          <span>Content refresh prioritization</span>
+          <span>Decision-support study</span>
+        </div>
+      </header>
+
+      <section class="metric-band" aria-label="Headline results">
+        <div><strong>30,000</strong><span>pages scored</span></div>
+        <div><strong>32</strong><span>pseudonymous clients</span></div>
+        <div><strong>0.24 → 0.74</strong><span>precision at 50</span></div>
+        <div><strong>42</strong><span>fixed random seed</span></div>
+      </section>
+
+      <div class="reading-grid">
+        <aside class="contents" aria-label="On this page">
+          <p>On this page</p>
+          <a href="#abstract">Abstract</a>
+          <a href="#problem">Problem</a>
+          <a href="#data">Data</a>
+          <a href="#method">Methodology</a>
+          <a href="#results">Results</a>
+          <a href="#limitations">Limitations</a>
+          <a href="#recommendations">Recommendations</a>
+          <a href="#reproducibility">Reproducibility</a>
+          <a href="#credit">Credit</a>
+        </aside>
+
+        <div class="paper-body">
+          <section id="abstract" class="abstract">
+            <p class="section-label">Abstract</p>
+            <p>This study asks which existing pages an editor should review first when refresh capacity is limited. It uses the bundled FlyRank anonymized starter release: 30,000 content items from 32 pseudonymous clients, with trailing-90-day search and engagement measurements. I compare a transparent rule score with Logistic Regression, a constrained Decision Tree, and a Random Forest, keeping label-derived fields and identifiers out of the features and holding out entire clients for evaluation. On the reference client holdout, Random Forest raised precision among the first 50 recommendations from 0.24 for the rule baseline to 0.74, while average precision rose from 0.468 to 0.618. The result supports a human-reviewed refresh queue; it does not show that refreshing a recommended page will cause traffic to improve.</p>
+          </section>
+
+          <section id="problem">
+            <p class="section-number">01</p>
+            <h2>Introduction / Problem statement</h2>
+            <p class="lead">An editor may manage thousands of pages but have time to refresh only a small batch each week. The useful decision is not “is this page good?” but “which page should be inspected first?”</p>
+            <p>The unit of analysis is one pseudonymized content item. The output is a ranked score with a suggested action and reason codes. A human editor checks each recommended page in context and decides whether to refresh, expand, investigate click-through rate, investigate engagement, or monitor.</p>
+            <p>A false positive costs review time. A false negative can leave a declining, still-visible page unattended. Machine learning is useful only if it improves that ordering over a clear, hand-written rule.</p>
+          </section>
+
+          <section id="data">
+            <p class="section-number">02</p>
+            <h2>Data</h2>
+            <p>The analysis uses the bundled FlyRank starter release, <code>data/raw/content_refresh_anonymized.csv</code>. It contains 30,000 rows and 44 columns at one row per pseudonymized content item across 32 clients. Metrics summarize a trailing 90-day snapshot; exact calendar dates are not exposed, so this paper does not invent them or make time-forward claims.</p>
+            <div class="note note-data">
+              <strong>Public-safety boundary</strong>
+              <p>No client names, URLs, domains, titles, keywords, or raw queries appear in the analysis. Pseudonymous IDs are used only for grouping and joins.</p>
+            </div>
+            <p>Rate columns are percentages multiplied by 100, so <code>ctr = 0.76</code> means 0.76%. An average position of zero means no position data. The label sources <code>trend_direction</code> and <code>trend_pct</code>, overlapping recent-window fields, provider/model metadata, and identifiers are excluded from features.</p>
+          </section>
+
+          <section id="method">
+            <p class="section-number">03</p>
+            <h2>Methodology</h2>
+            <h3>Target and baseline</h3>
+            <p>The proxy target is <code>is_declining_label = (trend_direction == "down")</code>. It describes observed decline inside the snapshot, not a future outcome. The baseline prioritizes stale but visible pages, visible pages with low CTR, thin but visible pages, and old pages that still rank on page one.</p>
+            <h3>Models and features</h3>
+            <p>The reference pipeline compares Logistic Regression, a constrained Decision Tree, and a constrained Random Forest. Features cover demand, content shape, traffic volume, days with activity, age and freshness, click-through rate, average position, engagement, scroll rate, and public categorical tiers. Missing values are handled during preprocessing.</p>
+            <h3>Validation and leakage checks</h3>
+            <p>Complete clients are held out, producing 27,675 training rows and 2,325 test rows with seed 42. Models and the baseline are evaluated on the same held-out pages. Assertions prevent label sources, overlapping windows, and identifiers from entering the feature matrix. Model selection uses precision@50 first, then average precision and ROC AUC.</p>
+          </section>
+
+          <section id="results">
+            <p class="section-number">04</p>
+            <h2>Results</h2>
+            <p class="lead">On the reference holdout, the model puts 37 observed declining-label pages in the first 50 recommendations. The baseline puts 12 there.</p>
+            <div class="table-wrap" tabindex="0" role="region" aria-label="Model comparison table">
+              <table>
+                <thead><tr><th>Method</th><th>ROC AUC</th><th>Avg precision</th><th>P@20</th><th>P@50</th><th>P@100</th></tr></thead>
+                <tbody>
+                  <tr><th>Rule baseline</th><td>0.627</td><td>0.468</td><td>0.15</td><td>0.24</td><td>0.36</td></tr>
+                  <tr><th>Logistic Regression</th><td>0.700</td><td>0.522</td><td>0.35</td><td>0.40</td><td>0.44</td></tr>
+                  <tr><th>Decision Tree</th><td>0.742</td><td>0.575</td><td>0.50</td><td>0.54</td><td>0.53</td></tr>
+                  <tr class="best"><th>Random Forest</th><td>0.750</td><td>0.618</td><td>0.65</td><td>0.74</td><td>0.72</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <p class="caption">Table 1. Same-split held-out metrics. Precision@K is the share of observed declining-label pages in the first K recommendations.</p>
+
+            <figure>
+              <img src="assets/top_feature_importance.svg" alt="Horizontal bar chart of the twelve most important model features. Days with impressions, log impressions, average position, and content age are highest.">
+              <figcaption><strong>Figure 1.</strong> Search activity, position, and content age carry much of the fitted signal. Importance indicates model reliance, not causality.</figcaption>
+            </figure>
+
+            <div class="finding">
+              <p class="finding-kicker">Sensitivity check</p>
+              <p>A separate grouped holdout selected Logistic Regression at precision@50 = 0.72 versus a 0.38 rule baseline; Random Forest reached 0.54. The learned ranking improved on the rule again, but the winning algorithm changed. The honest conclusion is improvement on the tested client splits, not a universally best algorithm.</p>
+            </div>
+          </section>
+
+          <section id="limitations">
+            <p class="section-number">05</p>
+            <h2>Limitations & honest framing</h2>
+            <ul class="limitations-list">
+              <li><strong>Not a forecast.</strong> The target is an in-window decline proxy, not a future label.</li>
+              <li><strong>Not time validation.</strong> Client holdout tests transfer across clients, not through time.</li>
+              <li><strong>Split-sensitive.</strong> Only 32 clients are available, and the selected model changes across grouped holdouts.</li>
+              <li><strong>Not causal.</strong> Feature importance does not identify causes, and no randomized experiment estimates refresh impact.</li>
+              <li><strong>Human review required.</strong> A high score is a reason to inspect a page, not permission to edit it automatically.</li>
+            </ul>
+          </section>
+
+          <section id="recommendations">
+            <p class="section-number">06</p>
+            <h2>Ranked recommendations</h2>
+            <p>The repeatable pipeline scores all 30,000 items after validation and combines model probability with the transparent baseline. The editor should work through the queue in this order:</p>
+            <ol class="action-list">
+              <li><span>01</span><div><strong>Review high-confidence visible candidates</strong><p>Start where model probability, real impressions, and multiple reason codes agree.</p></div></li>
+              <li><span>02</span><div><strong>Refresh and review CTR</strong><p>Check current intent, title and snippet alignment, and live ranking context.</p></div></li>
+              <li><span>03</span><div><strong>Review engagement</strong><p>Inspect intent satisfaction and tracking when sessions are meaningful but engagement is weak.</p></div></li>
+              <li><span>04</span><div><strong>Expand only after confirmation</strong><p>Add coverage only when a human verifies a genuine content gap.</p></div></li>
+              <li><span>05</span><div><strong>Monitor low-confidence items</strong><p>Defer unless new evidence or business priority changes the decision.</p></div></li>
+            </ol>
+
+            <figure>
+              <img src="assets/action_mix.svg" alt="Horizontal bar chart showing monitor as the largest action group, followed by refresh, refresh and review CTR, refresh and review engagement, and expand and refresh.">
+              <figcaption><strong>Figure 2.</strong> The queue routes pages to different human checks rather than prescribing one universal edit.</figcaption>
+            </figure>
+
+            <div class="note note-warning">
+              <strong>No-go actions</strong>
+              <p>Never automate publication, deletion, redirects, client communication, or promises of traffic recovery from this score.</p>
+            </div>
+          </section>
+
+          <section id="reproducibility">
+            <p class="section-number">07</p>
+            <h2>Reproducibility</h2>
+            <p>A fresh clone rebuilds features, baseline, models, queue, charts, JSON receipts, Markdown report, and PDF report.</p>
+            <pre><code>git clone https://github.com/thany-8/content-refresh-prioritizer.git
+cd content-refresh-prioritizer
+python -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+python scripts/run_all.py</code></pre>
+            <div class="link-list">
+              <a href="https://github.com/thany-8/content-refresh-prioritizer/blob/main/work/notebooks/w03_data_contract.ipynb"><span>Data contract</span><strong>Week 3 ↗</strong></a>
+              <a href="https://github.com/thany-8/content-refresh-prioritizer/blob/main/work/notebooks/w04_baseline_score.ipynb"><span>Rule baseline</span><strong>Week 4 ↗</strong></a>
+              <a href="https://github.com/thany-8/content-refresh-prioritizer/blob/main/work/notebooks/w05_model.ipynb"><span>Grouped models</span><strong>Week 5 ↗</strong></a>
+              <a href="https://github.com/thany-8/content-refresh-prioritizer/blob/main/work/notebooks/w07_action_playbook.ipynb"><span>Action playbook</span><strong>Week 7 ↗</strong></a>
+              <a href="https://github.com/thany-8/content-refresh-prioritizer/blob/main/work/notebooks/capstone.ipynb"><span>Capstone notebook</span><strong>Full evidence ↗</strong></a>
+            </div>
+          </section>
+
+          <section id="credit" class="credit">
+            <p class="section-number">08</p>
+            <h2>Acknowledgments & data credit</h2>
+            <p>Built on the <a href="https://flyrank.ai/">FlyRank ML Internship dataset</a>. This study uses only the bundled anonymized starter release and follows the repository’s public data-use rules.</p>
+          </section>
+        </div>
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    <p>Observed patterns. Directional recommendations. Human decisions.</p>
+    <a href="#top">Back to top ↑</a>
+  </footer>
+</body>
+</html>

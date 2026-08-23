@@ -1,0 +1,82 @@
+{
+  "queue_scope": "committed top-100 public-safe sample",
+  "rows_reviewed": 200,
+  "action_priority": [
+    {
+      "priority": 1,
+      "action": "refresh_and_review_ctr",
+      "human_next_step": "Check intent, title/snippet alignment, and live search context."
+    },
+    {
+      "priority": 2,
+      "action": "refresh_and_review_engagement",
+      "human_next_step": "Check whether the page satisfies intent and whether tracking is complete."
+    },
+    {
+      "priority": 3,
+      "action": "expand_and_refresh",
+      "human_next_step": "Confirm a real coverage gap before adding content."
+    },
+    {
+      "priority": 4,
+      "action": "refresh",
+      "human_next_step": "Review freshness, accuracy, and business priority."
+    },
+    {
+      "priority": 5,
+      "action": "monitor",
+      "human_next_step": "Defer unless new evidence raises priority."
+    }
+  ],
+  "top_100_action_mix": {
+    "refresh_and_review_ctr": 130,
+    "refresh": 35,
+    "refresh_and_review_engagement": 35
+  },
+  "top_100_confidence_mix": {
+    "high": 161,
+    "medium": 39
+  },
+  "review_policy": {
+    "required_checks": [
+      "page purpose and business priority",
+      "current search-result and intent context",
+      "seasonality or campaign timing",
+      "conversion role and internal dependencies",
+      "tracking completeness and previous edits"
+    ],
+    "never_automate": [
+      "publish or delete content",
+      "redirect URLs",
+      "contact clients",
+      "promise traffic recovery"
+    ]
+  },
+  "monitoring_triggers": [
+    {
+      "signal": "top_50_precision",
+      "trigger": "< 0.60",
+      "response": "Revalidate ranking and pause automatic queue promotion."
+    },
+    {
+      "signal": "decline_base_rate",
+      "trigger": "> 10 percentage-point shift",
+      "response": "Recalibrate expectations and metrics."
+    },
+    {
+      "signal": "feature_missingness",
+      "trigger": "> 10 percentage-point shift",
+      "response": "Audit upstream collection and imputation."
+    },
+    {
+      "signal": "client_or_content_mix",
+      "trigger": "material change",
+      "response": "Repeat grouped validation before reuse."
+    },
+    {
+      "signal": "data_age",
+      "trigger": "> 30 days",
+      "response": "Regenerate the queue from approved current data."
+    }
+  ]
+}
