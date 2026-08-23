@@ -1,55 +1,146 @@
 {
-  "queue_scope": "committed top-100 public-safe sample",
-  "rows_reviewed": 200,
+  "receipt_version": 1,
+  "queue_scope": "full ranked operational queue",
+  "source": "outputs/refresh_queue.csv",
+  "rows_exported": 30000,
+  "rank_range": [
+    1,
+    30000
+  ],
+  "operational_queue": "work/outputs/ranked_content_recommendations.csv",
+  "aggregate_figure": "work/outputs/archetype_mix.svg",
+  "excluded_sensitive_or_retrospective_fields": [
+    "final_reason_codes",
+    "is_declining_label",
+    "suggested_action",
+    "trend_direction"
+  ],
   "action_priority": [
     {
       "priority": 1,
-      "action": "refresh_and_review_ctr",
-      "human_next_step": "Check intent, title/snippet alignment, and live search context."
+      "archetype": "visible_ctr_opportunity",
+      "default_action": "refresh_and_review_ctr",
+      "human_next_step": "Check live intent, title, snippet, and SERP context."
     },
     {
       "priority": 2,
-      "action": "refresh_and_review_engagement",
-      "human_next_step": "Check whether the page satisfies intent and whether tracking is complete."
+      "archetype": "engagement_friction",
+      "default_action": "refresh_and_review_engagement",
+      "human_next_step": "Check intent satisfaction and analytics quality."
     },
     {
       "priority": 3,
-      "action": "expand_and_refresh",
+      "archetype": "thin_visible_content",
+      "default_action": "expand_and_refresh",
       "human_next_step": "Confirm a real coverage gap before adding content."
     },
     {
       "priority": 4,
-      "action": "refresh",
-      "human_next_step": "Review freshness, accuracy, and business priority."
+      "archetype": "stale_visible_content",
+      "default_action": "refresh",
+      "human_next_step": "Verify facts, freshness, and current business priority."
     },
     {
       "priority": 5,
-      "action": "monitor",
-      "human_next_step": "Defer unless new evidence raises priority."
+      "archetype": "aging_page_one_content",
+      "default_action": "refresh",
+      "human_next_step": "Protect useful visibility after checking ranking context."
+    },
+    {
+      "priority": 6,
+      "archetype": "visible_model_risk",
+      "default_action": "refresh",
+      "human_next_step": "Inspect the page for a concrete issue before editing."
+    },
+    {
+      "priority": 7,
+      "archetype": "model_only_risk",
+      "default_action": "monitor",
+      "human_next_step": "Seek stronger observable evidence before spending effort."
+    },
+    {
+      "priority": 8,
+      "archetype": "monitor_or_low_evidence",
+      "default_action": "monitor",
+      "human_next_step": "Defer unless business context raises priority."
     }
   ],
-  "top_100_action_mix": {
-    "refresh_and_review_ctr": 130,
-    "refresh": 35,
-    "refresh_and_review_engagement": 35
+  "action_mix": {
+    "monitor": 14133,
+    "refresh": 11460,
+    "refresh_and_review_ctr": 3341,
+    "refresh_and_review_engagement": 984,
+    "expand_and_refresh": 82
   },
-  "top_100_confidence_mix": {
-    "high": 161,
-    "medium": 39
+  "confidence_mix": {
+    "low": 15000,
+    "medium": 11395,
+    "high": 3605
+  },
+  "archetype_mix": {
+    "monitor_or_low_evidence": 11779,
+    "aging_page_one_content": 6528,
+    "visible_model_risk": 4927,
+    "visible_ctr_opportunity": 3341,
+    "model_only_risk": 2354,
+    "engagement_friction": 984,
+    "thin_visible_content": 82,
+    "stale_visible_content": 5
+  },
+  "relative_value_tier_mix": {
+    "standard": 15001,
+    "elevated": 8999,
+    "high": 4500,
+    "highest": 1500
+  },
+  "review_effort": {
+    "total_estimated_minutes": 662465,
+    "median_minutes_per_page": 25.0,
+    "capacity_batches": 553
   },
   "review_policy": {
+    "value_proxy": {
+      "definition": "Queue-relative exposure/opportunity proxy: 60% impressions percentile, 25% sessions percentile, and 15% baseline-score percentile.",
+      "interpretation": "A triage aid within this queue; not revenue, conversion value, or expected uplift.",
+      "tiers": "Observed queue percentiles: standard 0-50%, elevated 50-80%, high 80-95%, highest 95-100%."
+    },
+    "effort_estimate": {
+      "base_minutes_by_action": {
+        "monitor": 5,
+        "refresh_and_review_ctr": 20,
+        "refresh_and_review_engagement": 25,
+        "refresh": 35,
+        "expand_and_refresh": 60
+      },
+      "adjustments": "+10 minutes above 2,000 words; +5 minutes when word count is unavailable; estimates are planning assumptions, not measured labor time."
+    },
+    "error_costs": {
+      "false_positive": "Consumes review/edit time and may introduce unnecessary content or search-risk changes; require stronger evidence for long, high-value, or strategically sensitive pages.",
+      "false_negative": "Delays review of a page that later shows a material decline and loses a chance to learn; prioritize monitoring for high-exposure pages even when action evidence is weak.",
+      "tradeoff": "Use the ranked queue to allocate scarce review, but let business context override the proxy after documenting the reason."
+    },
+    "capacity_plan": {
+      "scenario_minutes_per_week": 1200,
+      "batch_rule": "Walk the full ranked queue in order and start a new batch whenever cumulative estimated review time exceeds capacity.",
+      "current_batch_pages": 48,
+      "current_batch_estimated_minutes": 1190
+    },
     "required_checks": [
       "page purpose and business priority",
       "current search-result and intent context",
       "seasonality or campaign timing",
       "conversion role and internal dependencies",
-      "tracking completeness and previous edits"
+      "tracking completeness and previous edits",
+      "whether the estimated effort and relative value justify this batch"
     ],
     "never_automate": [
-      "publish or delete content",
-      "redirect URLs",
-      "contact clients",
-      "promise traffic recovery"
+      "publish, delete, or substantially rewrite content",
+      "redirect, canonicalize, or change URL structure",
+      "change titles, metadata, links, or structured data without human approval",
+      "act on model-only risk without a concrete observable issue",
+      "suppress strategically important content because its proxy tier is low",
+      "contact clients or expose one client's records to another",
+      "promise traffic, conversion, or revenue recovery"
     ]
   },
   "monitoring_triggers": [
@@ -78,5 +169,6 @@
       "trigger": "> 30 days",
       "response": "Regenerate the queue from approved current data."
     }
-  ]
+  ],
+  "claim_boundary": "Scores, tiers, and effort estimates support review prioritization; they do not estimate causal uplift or revenue."
 }
